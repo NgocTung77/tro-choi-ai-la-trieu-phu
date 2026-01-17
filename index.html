@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ai Là Triệu Phú - Học Mà Chơi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&amp;family=Quicksand:wght@500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    * {
+      font-family: 'Quicksand', sans-serif;
+    }
+    
+    .title-font {
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+      50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); }
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes sparkle {
+      0%, 100% { opacity: 0; transform: scale(0); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes correct-pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    @keyframes confetti-fall {
+      0% { transform: translateY(-100%) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100%) rotate(720deg); opacity: 0; }
+    }
+    
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes number-pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .animate-float { animation: float 3s ease-in-out infinite; }
+    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .animate-correct { animation: correct-pulse 0.5s ease-in-out 3; }
+    .animate-wrong { animation: shake 0.5s ease-in-out; }
+    .animate-slide-up { animation: slide-up 0.5s ease-out forwards; }
+    .animate-number-pop { animation: number-pop 0.4s ease-out forwards; }
+    
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      animation: confetti-fall 3s linear forwards;
+    }
+    
+    .sparkle {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: radial-gradient(circle, #FFD700 0%, transparent 70%);
+      border-radius: 50%;
+      animation: sparkle 1.5s ease-in-out infinite;
+    }
+    
+    .answer-btn {
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .answer-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .answer-btn:hover::before {
+      left: 100%;
+    }
+    
+    .answer-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+    }
+    
+    .lifeline-btn {
+      transition: all 0.3s ease;
+    }
+    
+    .lifeline-btn:hover:not(:disabled) {
+      transform: scale(1.1);
+    }
+    
+    .lifeline-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    .prize-item {
+      transition: all 0.3s ease;
+    }
+    
+    .prize-item.current {
+      transform: scale(1.1);
+      font-weight: 700;
+    }
+    
+    .prize-item.passed {
+      opacity: 0.5;
+    }
+    
+    .game-bg {
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    }
+    
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .progress-ring {
+      transition: stroke-dashoffset 1s ease;
+    }
+    
+    .mascot {
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full overflow-auto game-bg">
+  <div id="app" class="min-h-full w-full"><!-- Start Screen -->
+   <div id="start-screen" class="min-h-full flex flex-col items-center justify-center p-6 relative overflow-hidden"><!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+     <div class="sparkle" style="top: 10%; left: 20%; animation-delay: 0s;"></div>
+     <div class="sparkle" style="top: 30%; left: 80%; animation-delay: 0.5s;"></div>
+     <div class="sparkle" style="top: 70%; left: 15%; animation-delay: 1s;"></div>
+     <div class="sparkle" style="top: 50%; left: 90%; animation-delay: 1.5s;"></div>
+     <div class="sparkle" style="top: 85%; left: 60%; animation-delay: 0.3s;"></div>
+    </div><!-- Mascot -->
+    <div class="animate-float mb-6">
+     <svg class="mascot w-32 h-32 md:w-40 md:h-40" viewbox="0 0 200 200"><!-- Owl body --> <ellipse cx="100" cy="120" rx="60" ry="70" fill="#8B5CF6" /> <ellipse cx="100" cy="120" rx="50" ry="55" fill="#A78BFA" /> <!-- Owl face --> <circle cx="100" cy="90" r="50" fill="#C4B5FD" /> <!-- Eyes --> <circle cx="75" cy="85" r="20" fill="white" /> <circle cx="125" cy="85" r="20" fill="white" /> <circle cx="78" cy="85" r="12" fill="#1F2937" /> <circle cx="128" cy="85" r="12" fill="#1F2937" /> <circle cx="82" cy="82" r="4" fill="white" /> <circle cx="132" cy="82" r="4" fill="white" /> <!-- Beak --> <path d="M100 95 L90 110 L100 105 L110 110 Z" fill="#F59E0B" /> <!-- Graduation cap --> <rect x="60" y="45" width="80" height="8" fill="#1F2937" /> <polygon points="100,20 60,50 140,50" fill="#1F2937" /> <line x1="100" y1="20" x2="100" y2="5" stroke="#F59E0B" stroke-width="3" /> <circle cx="100" cy="5" r="5" fill="#F59E0B" /> <!-- Wings --> <ellipse cx="45" cy="130" rx="15" ry="30" fill="#7C3AED" /> <ellipse cx="155" cy="130" rx="15" ry="30" fill="#7C3AED" />
+     </svg>
+    </div><!-- Title -->
+    <div class="text-center mb-8 animate-slide-up">
+     <h1 id="main-title" class="title-font text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-500 mb-3 drop-shadow-lg">AI LÀ TRIỆU PHÚ</h1>
+     <p id="subtitle" class="text-xl md:text-2xl text-purple-200 font-semibold">Học mà chơi, chơi mà học! 📚✨</p>
+    </div><!-- Welcome Message -->
+    <p id="welcome-text" class="text-center text-purple-100 mb-8 max-w-md text-lg animate-slide-up" style="animation-delay: 0.2s;">Chào mừng bạn đến với trò chơi kiến thức! Hãy thử thách bản thân với 15 câu hỏi thú vị nhé!</p><!-- Start Button --> <button id="start-btn" class="animate-pulse-glow bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-gray-900 px-12 py-5 rounded-2xl text-2xl font-bold title-font shadow-2xl hover:scale-105 transition-transform duration-300 animate-slide-up" style="animation-delay: 0.4s;"> 🎮 BẮT ĐẦU CHƠI </button> <!-- Info Cards -->
+    <div class="grid grid-cols-3 gap-4 mt-10 max-w-lg w-full animate-slide-up" style="animation-delay: 0.6s;">
+     <div class="glass-panel rounded-xl p-4 text-center">
+      <div class="text-3xl mb-2">
+       ❓
+      </div>
+      <div class="text-purple-100 text-sm font-semibold">
+       15 Câu hỏi
+      </div>
+     </div>
+     <div class="glass-panel rounded-xl p-4 text-center">
+      <div class="text-3xl mb-2">
+       🎯
+      </div>
+      <div class="text-purple-100 text-sm font-semibold">
+       3 Trợ giúp
+      </div>
+     </div>
+     <div class="glass-panel rounded-xl p-4 text-center">
+      <div class="text-3xl mb-2">
+       🏆
+      </div>
+      <div class="text-purple-100 text-sm font-semibold">
+       Triệu Phú!
+      </div>
+     </div>
+    </div>
+   </div><!-- Game Screen -->
+   <div id="game-screen" class="min-h-full hidden">
+    <div class="max-w-6xl mx-auto p-4 md:p-6"><!-- Header -->
+     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4"><!-- Timer & Question Number -->
+      <div class="flex items-center gap-4">
+       <div class="relative">
+        <svg class="w-16 h-16 transform -rotate-90"><circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="4" /> <circle id="timer-circle" class="progress-ring" cx="32" cy="32" r="28" fill="none" stroke="#F59E0B" stroke-width="4" stroke-dasharray="176" stroke-dashoffset="0" />
+        </svg><span id="timer-text" class="absolute inset-0 flex items-center justify-center text-white font-bold text-lg">30</span>
+       </div>
+       <div class="glass-panel rounded-xl px-4 py-2"><span class="text-purple-200 text-sm">Câu hỏi</span>
+        <div class="text-white font-bold text-xl title-font">
+         <span id="question-number">1</span>/15
+        </div>
+       </div>
+      </div><!-- Lifelines -->
+      <div class="flex gap-3"><button id="lifeline-5050" class="lifeline-btn glass-panel w-14 h-14 rounded-full flex items-center justify-center text-2xl hover:bg-purple-600/50" title="50:50 - Loại bỏ 2 đáp án sai"> 50:50 </button> <button id="lifeline-audience" class="lifeline-btn glass-panel w-14 h-14 rounded-full flex items-center justify-center text-2xl hover:bg-purple-600/50" title="Hỏi ý kiến khán giả"> 📊 </button> <button id="lifeline-phone" class="lifeline-btn glass-panel w-14 h-14 rounded-full flex items-center justify-center text-2xl hover:bg-purple-600/50" title="Gọi điện cho người thân"> 📞 </button>
+      </div>
+     </div><!-- Main Content -->
+     <div class="flex flex-col lg:flex-row gap-6"><!-- Question & Answers -->
+      <div class="flex-1"><!-- Question Box -->
+       <div class="glass-panel rounded-2xl p-6 mb-6">
+        <div class="flex items-start gap-4">
+         <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-2xl flex-shrink-0 animate-number-pop"><span id="q-num-badge">1</span>
+         </div>
+         <p id="question-text" class="text-white text-lg md:text-xl leading-relaxed font-semibold">Câu hỏi sẽ xuất hiện ở đây...</p>
+        </div>
+       </div><!-- Audience Poll (Hidden by default) -->
+       <div id="audience-poll" class="hidden glass-panel rounded-2xl p-6 mb-6">
+        <h3 class="text-yellow-400 font-bold mb-4 text-center">📊 Ý kiến của lớp học</h3>
+        <div class="space-y-3">
+         <div class="flex items-center gap-3"><span class="text-white w-8 font-bold">A:</span>
+          <div class="flex-1 bg-purple-900/50 rounded-full h-6 overflow-hidden">
+           <div id="poll-a" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-1000" style="width: 0%"></div>
+          </div><span id="poll-a-text" class="text-white w-12 text-right">0%</span>
+         </div>
+         <div class="flex items-center gap-3"><span class="text-white w-8 font-bold">B:</span>
+          <div class="flex-1 bg-purple-900/50 rounded-full h-6 overflow-hidden">
+           <div id="poll-b" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-1000" style="width: 0%"></div>
+          </div><span id="poll-b-text" class="text-white w-12 text-right">0%</span>
+         </div>
+         <div class="flex items-center gap-3"><span class="text-white w-8 font-bold">C:</span>
+          <div class="flex-1 bg-purple-900/50 rounded-full h-6 overflow-hidden">
+           <div id="poll-c" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-1000" style="width: 0%"></div>
+          </div><span id="poll-c-text" class="text-white w-12 text-right">0%</span>
+         </div>
+         <div class="flex items-center gap-3"><span class="text-white w-8 font-bold">D:</span>
+          <div class="flex-1 bg-purple-900/50 rounded-full h-6 overflow-hidden">
+           <div id="poll-d" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-1000" style="width: 0%"></div>
+          </div><span id="poll-d-text" class="text-white w-12 text-right">0%</span>
+         </div>
+        </div>
+       </div><!-- Phone Help (Hidden by default) -->
+       <div id="phone-help" class="hidden glass-panel rounded-2xl p-6 mb-6">
+        <div class="flex items-center gap-4">
+         <div class="w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-3xl">
+          👨‍🏫
+         </div>
+         <div>
+          <h3 class="text-yellow-400 font-bold mb-1">📞 Thầy giáo gợi ý:</h3>
+          <p id="phone-hint" class="text-white text-lg italic">"Gợi ý sẽ xuất hiện ở đây..."</p>
+         </div>
+        </div>
+       </div><!-- Answer Options -->
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><button id="answer-a" class="answer-btn glass-panel rounded-xl p-4 text-left hover:bg-purple-600/50 border-2 border-transparent"> <span class="inline-block w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-red-500 text-white font-bold text-lg mr-3 text-center leading-10">A</span> <span id="answer-a-text" class="text-white text-lg">Đáp án A</span> </button> <button id="answer-b" class="answer-btn glass-panel rounded-xl p-4 text-left hover:bg-purple-600/50 border-2 border-transparent"> <span class="inline-block w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 text-white font-bold text-lg mr-3 text-center leading-10">B</span> <span id="answer-b-text" class="text-white text-lg">Đáp án B</span> </button> <button id="answer-c" class="answer-btn glass-panel rounded-xl p-4 text-left hover:bg-purple-600/50 border-2 border-transparent"> <span class="inline-block w-10 h-10 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 text-white font-bold text-lg mr-3 text-center leading-10">C</span> <span id="answer-c-text" class="text-white text-lg">Đáp án C</span> </button> <button id="answer-d" class="answer-btn glass-panel rounded-xl p-4 text-left hover:bg-purple-600/50 border-2 border-transparent"> <span class="inline-block w-10 h-10 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 text-white font-bold text-lg mr-3 text-center leading-10">D</span> <span id="answer-d-text" class="text-white text-lg">Đáp án D</span> </button>
+       </div><!-- Explanation Box (Hidden by default) -->
+       <div id="explanation-box" class="hidden glass-panel rounded-2xl p-6 mt-6 border-2 border-yellow-400/50">
+        <h3 class="text-yellow-400 font-bold mb-2">💡 Giải thích:</h3>
+        <p id="explanation-text" class="text-white"></p><button id="next-btn" class="mt-4 bg-gradient-to-r from-green-400 to-emerald-500 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform"> Câu tiếp theo ➜ </button>
+       </div>
+      </div><!-- Prize Ladder -->
+      <div class="lg:w-64">
+       <div class="glass-panel rounded-2xl p-4">
+        <h3 class="text-center text-yellow-400 font-bold mb-4 title-font">🏆 BẢNG GIẢI THƯỞNG</h3>
+        <div id="prize-ladder" class="space-y-2"><!-- Prize items will be generated by JS -->
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div><!-- Result Screen -->
+   <div id="result-screen" class="min-h-full hidden flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div id="confetti-container" class="fixed inset-0 pointer-events-none"></div>
+    <div class="text-center animate-slide-up z-10">
+     <div id="result-emoji" class="text-8xl mb-6 animate-float">
+      🏆
+     </div>
+     <h2 id="result-title" class="title-font text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-500 mb-4">CHÚC MỪNG!</h2>
+     <p id="result-message" class="text-purple-100 text-xl mb-6">Bạn đã hoàn thành xuất sắc!</p>
+     <div class="glass-panel rounded-2xl p-6 mb-8 max-w-md">
+      <div class="grid grid-cols-2 gap-6">
+       <div class="text-center">
+        <div class="text-4xl font-black text-yellow-400 title-font" id="correct-count">
+         0
+        </div>
+        <div class="text-purple-200">
+         Câu đúng
+        </div>
+       </div>
+       <div class="text-center">
+        <div class="text-4xl font-black text-green-400 title-font" id="prize-won">
+         0đ
+        </div>
+        <div class="text-purple-200">
+         Giải thưởng
+        </div>
+       </div>
+      </div>
+     </div>
+     <div class="flex gap-4 flex-wrap justify-center"><button id="play-again-btn" class="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-gray-900 px-8 py-4 rounded-xl text-xl font-bold shadow-xl hover:scale-105 transition-transform"> 🔄 Chơi lại </button> <button id="home-btn" class="glass-panel px-8 py-4 rounded-xl text-xl font-bold text-white hover:bg-purple-600/50 transition-colors"> 🏠 Về trang chủ </button>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    // Default config
+    const defaultConfig = {
+      game_title: "AI LÀ TRIỆU PHÚ",
+      welcome_message: "Chào mừng bạn đến với trò chơi kiến thức! Hãy thử thách bản thân với 15 câu hỏi thú vị nhé!",
+      primary_color: "#8B5CF6",
+      secondary_color: "#F59E0B",
+      background_color: "#1F2937",
+      text_color: "#FFFFFF",
+      accent_color: "#10B981"
+    };
+
+    // Questions data
+    const questions = [
+      // Câu 1-5: Nhận biết - Thông hiểu
+      {
+        question: "Thủ đô của Việt Nam là thành phố nào?",
+        answers: ["Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Huế"],
+        correct: 1,
+        explanation: "Hà Nội là thủ đô của nước Cộng hòa Xã hội Chủ nghĩa Việt Nam từ năm 1976.",
+        hint: "Đây là thành phố nằm ở phía Bắc, có nhiều di tích lịch sử..."
+      },
+      {
+        question: "Kết quả của phép tính 7 × 8 bằng bao nhiêu?",
+        answers: ["54", "56", "64", "48"],
+        correct: 1,
+        explanation: "7 × 8 = 56. Đây là phép nhân trong bảng cửu chương.",
+        hint: "Hãy nhớ lại bảng cửu chương 7, 7 nhân 8..."
+      },
+      {
+        question: "Nước chiếm bao nhiêu phần trăm bề mặt Trái Đất?",
+        answers: ["50%", "60%", "71%", "80%"],
+        correct: 2,
+        explanation: "Khoảng 71% bề mặt Trái Đất được bao phủ bởi nước, chủ yếu là đại dương.",
+        hint: "Con số này lớn hơn 2/3, nước bao phủ phần lớn bề mặt Trái Đất..."
+      },
+      {
+        question: "Ai là tác giả của bài thơ 'Lượm'?",
+        answers: ["Xuân Quỳnh", "Tố Hữu", "Hữu Thỉnh", "Nguyễn Du"],
+        correct: 1,
+        explanation: "Tố Hữu là tác giả bài thơ 'Lượm', viết về chú bé liên lạc dũng cảm.",
+        hint: "Nhà thơ này cũng là tác giả của bài 'Việt Bắc'..."
+      },
+      {
+        question: "Vitamin nào có nhiều trong cam, chanh?",
+        answers: ["Vitamin A", "Vitamin B", "Vitamin C", "Vitamin D"],
+        correct: 2,
+        explanation: "Vitamin C có nhiều trong các loại trái cây họ cam quýt, giúp tăng cường sức đề kháng.",
+        hint: "Vitamin này giúp chống cảm cúm và có vị chua..."
+      },
+      // Câu 6-10: Vận dụng
+      {
+        question: "Nếu hình chữ nhật có chiều dài 8cm, chiều rộng 5cm thì diện tích là bao nhiêu?",
+        answers: ["13cm²", "26cm²", "40cm²", "80cm²"],
+        correct: 2,
+        explanation: "Diện tích hình chữ nhật = Chiều dài × Chiều rộng = 8 × 5 = 40cm²",
+        hint: "Công thức diện tích hình chữ nhật là dài nhân rộng..."
+      },
+      {
+        question: "Trong câu 'Mẹ em đang nấu cơm', từ nào là động từ?",
+        answers: ["Mẹ", "em", "đang nấu", "cơm"],
+        correct: 2,
+        explanation: "'Đang nấu' là động từ chỉ hoạt động mà mẹ đang thực hiện.",
+        hint: "Động từ là từ chỉ hành động, hoạt động..."
+      },
+      {
+        question: "Hiện tượng nào xảy ra khi nước đun sôi?",
+        answers: ["Đông đặc", "Bay hơi", "Ngưng tụ", "Nóng chảy"],
+        correct: 1,
+        explanation: "Khi nước đun sôi ở 100°C, nước sẽ bay hơi và chuyển thành hơi nước.",
+        hint: "Khi nước nóng, nó chuyển từ thể lỏng sang thể khí..."
+      },
+      {
+        question: "Năm 1945 có sự kiện lịch sử quan trọng nào của Việt Nam?",
+        answers: ["Giải phóng Điện Biên Phủ", "Cách mạng tháng Tám", "Thống nhất đất nước", "Đổi mới"],
+        correct: 1,
+        explanation: "Ngày 2/9/1945, Chủ tịch Hồ Chí Minh đọc Tuyên ngôn Độc lập, khai sinh nước Việt Nam Dân chủ Cộng hòa.",
+        hint: "Sự kiện này gắn liền với ngày Quốc khánh 2/9..."
+      },
+      {
+        question: "Biển Đông giáp với bờ biển phía nào của Việt Nam?",
+        answers: ["Phía Bắc", "Phía Đông", "Phía Tây", "Phía Nam"],
+        correct: 1,
+        explanation: "Biển Đông nằm ở phía Đông của Việt Nam, trải dài từ Bắc vào Nam.",
+        hint: "Mặt trời mọc từ hướng này..."
+      },
+      // Câu 11-15: Vận dụng cao
+      {
+        question: "Một người đi xe đạp 15km trong 1 giờ. Hỏi đi 45km mất bao lâu?",
+        answers: ["2 giờ", "3 giờ", "4 giờ", "5 giờ"],
+        correct: 1,
+        explanation: "Vận tốc = 15km/h. Thời gian = 45 ÷ 15 = 3 giờ.",
+        hint: "Tính vận tốc trước, rồi lấy quãng đường chia cho vận tốc..."
+      },
+      {
+        question: "Biện pháp tu từ nào được sử dụng trong câu 'Mặt trời cười rạng rỡ'?",
+        answers: ["So sánh", "Nhân hóa", "Ẩn dụ", "Hoán dụ"],
+        correct: 1,
+        explanation: "'Cười' là hành động của con người được gán cho mặt trời - đây là biện pháp nhân hóa.",
+        hint: "Khi vật vô tri được gán cho hành động của con người..."
+      },
+      {
+        question: "Trong hệ Mặt Trời, hành tinh nào gần Mặt Trời nhất?",
+        answers: ["Sao Kim", "Sao Thủy", "Sao Hỏa", "Trái Đất"],
+        correct: 1,
+        explanation: "Sao Thủy (Mercury) là hành tinh gần Mặt Trời nhất trong hệ Mặt Trời.",
+        hint: "Tên của hành tinh này gắn liền với vị thần tốc độ trong thần thoại La Mã..."
+      },
+      {
+        question: "Nếu có 3 quả cam và mua thêm gấp đôi số đó, tổng cộng có bao nhiêu quả?",
+        answers: ["6 quả", "9 quả", "12 quả", "15 quả"],
+        correct: 1,
+        explanation: "Ban đầu có 3 quả. Mua thêm gấp đôi = 3 × 2 = 6 quả. Tổng = 3 + 6 = 9 quả.",
+        hint: "Gấp đôi số cam ban đầu, rồi cộng với số đã có..."
+      },
+      {
+        question: "Văn bản hành chính nào cần có đầy đủ quốc hiệu, tiêu ngữ?",
+        answers: ["Tin nhắn", "Đơn xin phép", "Bức thư", "Nhật ký"],
+        correct: 1,
+        explanation: "Đơn xin phép là văn bản hành chính cần có quốc hiệu 'Cộng hòa Xã hội Chủ nghĩa Việt Nam' và tiêu ngữ 'Độc lập - Tự do - Hạnh phúc'.",
+        hint: "Đây là loại văn bản thường gửi cho cơ quan, nhà trường..."
+      }
+    ];
+
+    // Prize levels
+    const prizes = [
+      { level: 1, amount: "200.000đ", safe: false },
+      { level: 2, amount: "400.000đ", safe: false },
+      { level: 3, amount: "600.000đ", safe: false },
+      { level: 4, amount: "1.000.000đ", safe: false },
+      { level: 5, amount: "2.000.000đ", safe: true },
+      { level: 6, amount: "3.000.000đ", safe: false },
+      { level: 7, amount: "6.000.000đ", safe: false },
+      { level: 8, amount: "10.000.000đ", safe: false },
+      { level: 9, amount: "14.000.000đ", safe: false },
+      { level: 10, amount: "22.000.000đ", safe: true },
+      { level: 11, amount: "30.000.000đ", safe: false },
+      { level: 12, amount: "40.000.000đ", safe: false },
+      { level: 13, amount: "60.000.000đ", safe: false },
+      { level: 14, amount: "85.000.000đ", safe: false },
+      { level: 15, amount: "150.000.000đ", safe: true }
+    ];
+
+    // Game state
+    let currentQuestion = 0;
+    let correctAnswers = 0;
+    let lifelines = { fiftyFifty: true, audience: true, phone: true };
+    let timer = null;
+    let timeLeft = 30;
+    let gameActive = false;
+
+    // DOM elements
+    const startScreen = document.getElementById('start-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const startBtn = document.getElementById('start-btn');
+    const answerBtns = ['answer-a', 'answer-b', 'answer-c', 'answer-d'].map(id => document.getElementById(id));
+    const nextBtn = document.getElementById('next-btn');
+    const playAgainBtn = document.getElementById('play-again-btn');
+    const homeBtn = document.getElementById('home-btn');
+    const lifelineBtns = {
+      fiftyFifty: document.getElementById('lifeline-5050'),
+      audience: document.getElementById('lifeline-audience'),
+      phone: document.getElementById('lifeline-phone')
+    };
+
+    // Initialize prize ladder
+    function initPrizeLadder() {
+      const ladder = document.getElementById('prize-ladder');
+      ladder.innerHTML = '';
+      for (let i = prizes.length - 1; i >= 0; i--) {
+        const prize = prizes[i];
+        const div = document.createElement('div');
+        div.id = `prize-${prize.level}`;
+        div.className = `prize-item flex justify-between items-center px-3 py-2 rounded-lg ${prize.safe ? 'bg-yellow-500/30 border border-yellow-400' : ''} ${i === 0 ? 'current bg-purple-600/50' : ''}`;
+        div.innerHTML = `
+          <span class="text-purple-200 text-sm">${prize.level}</span>
+          <span class="${prize.safe ? 'text-yellow-400' : 'text-white'} font-semibold text-sm">${prize.amount}</span>
+        `;
+        ladder.appendChild(div);
+      }
+    }
+
+    // Update prize ladder highlight
+    function updatePrizeLadder() {
+      prizes.forEach((prize, index) => {
+        const el = document.getElementById(`prize-${prize.level}`);
+        el.classList.remove('current', 'passed', 'bg-purple-600/50');
+        if (index < currentQuestion) {
+          el.classList.add('passed');
+        } else if (index === currentQuestion) {
+          el.classList.add('current', 'bg-purple-600/50');
+        }
+      });
+    }
+
+    // Start timer
+    function startTimer() {
+      timeLeft = 30;
+      updateTimerDisplay();
+      timer = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          handleTimeout();
+        }
+      }, 1000);
+    }
+
+    // Update timer display
+    function updateTimerDisplay() {
+      document.getElementById('timer-text').textContent = timeLeft;
+      const circle = document.getElementById('timer-circle');
+      const offset = (1 - timeLeft / 30) * 176;
+      circle.style.strokeDashoffset = offset;
+      circle.style.stroke = timeLeft <= 10 ? '#EF4444' : timeLeft <= 20 ? '#F59E0B' : '#10B981';
+    }
+
+    // Handle timeout
+    function handleTimeout() {
+      gameActive = false;
+      const q = questions[currentQuestion];
+      showCorrectAnswer(q.correct);
+      setTimeout(() => endGame(false), 2000);
+    }
+
+    // Load question
+    function loadQuestion() {
+      const q = questions[currentQuestion];
+      document.getElementById('question-text').textContent = q.question;
+      document.getElementById('question-number').textContent = currentQuestion + 1;
+      document.getElementById('q-num-badge').textContent = currentQuestion + 1;
+      document.getElementById('q-num-badge').parentElement.classList.add('animate-number-pop');
+      
+      // Update answers
+      q.answers.forEach((answer, index) => {
+        const btn = answerBtns[index];
+        btn.querySelector('span:last-child').textContent = answer;
+        btn.classList.remove('hidden', 'bg-green-600/50', 'bg-red-600/50', 'border-green-400', 'border-red-400', 'animate-correct', 'animate-wrong');
+        btn.classList.add('glass-panel');
+        btn.disabled = false;
+      });
+      
+      // Hide helpers
+      document.getElementById('explanation-box').classList.add('hidden');
+      document.getElementById('audience-poll').classList.add('hidden');
+      document.getElementById('phone-help').classList.add('hidden');
+      
+      // Update prize ladder
+      updatePrizeLadder();
+      
+      // Start timer
+      gameActive = true;
+      startTimer();
+    }
+
+    // Handle answer selection
+    function handleAnswer(selectedIndex) {
+      if (!gameActive) return;
+      
+      clearInterval(timer);
+      gameActive = false;
+      
+      const q = questions[currentQuestion];
+      const selectedBtn = answerBtns[selectedIndex];
+      
+      // Disable all buttons
+      answerBtns.forEach(btn => btn.disabled = true);
+      
+      // Add selection highlight
+      selectedBtn.classList.add('border-yellow-400');
+      
+      // Wait a moment for suspense
+      setTimeout(() => {
+        if (selectedIndex === q.correct) {
+          // Correct answer
+          selectedBtn.classList.remove('glass-panel', 'border-yellow-400');
+          selectedBtn.classList.add('bg-green-600/50', 'border-green-400', 'animate-correct');
+          correctAnswers++;
+          
+          // Show explanation
+          showExplanation(q.explanation, true);
+        } else {
+          // Wrong answer
+          selectedBtn.classList.remove('glass-panel', 'border-yellow-400');
+          selectedBtn.classList.add('bg-red-600/50', 'border-red-400', 'animate-wrong');
+          showCorrectAnswer(q.correct);
+          
+          // Show explanation
+          showExplanation(q.explanation, false);
+        }
+      }, 1500);
+    }
+
+    // Show correct answer
+    function showCorrectAnswer(correctIndex) {
+      answerBtns[correctIndex].classList.remove('glass-panel');
+      answerBtns[correctIndex].classList.add('bg-green-600/50', 'border-green-400', 'animate-correct');
+    }
+
+    // Show explanation
+    function showExplanation(text, isCorrect) {
+      document.getElementById('explanation-text').textContent = text;
+      document.getElementById('explanation-box').classList.remove('hidden');
+      document.getElementById('explanation-box').classList.add('animate-slide-up');
+      
+      if (!isCorrect) {
+        document.getElementById('next-btn').textContent = 'Xem kết quả ➜';
+      } else if (currentQuestion === questions.length - 1) {
+        document.getElementById('next-btn').textContent = '🎉 Hoàn thành!';
+      } else {
+        document.getElementById('next-btn').textContent = 'Câu tiếp theo ➜';
+      }
+    }
+
+    // Next question or end game
+    function handleNext() {
+      const wasCorrect = correctAnswers > currentQuestion ? false : true;
+      
+      // Check if wrong answer or last question
+      if (correctAnswers <= currentQuestion || currentQuestion === questions.length - 1) {
+        endGame(correctAnswers > currentQuestion);
+      } else {
+        currentQuestion++;
+        loadQuestion();
+      }
+    }
+
+    // End game
+    function endGame(won) {
+      gameScreen.classList.add('hidden');
+      resultScreen.classList.remove('hidden');
+      
+      const resultEmoji = document.getElementById('result-emoji');
+      const resultTitle = document.getElementById('result-title');
+      const resultMessage = document.getElementById('result-message');
+      const correctCount = document.getElementById('correct-count');
+      const prizeWon = document.getElementById('prize-won');
+      
+      correctCount.textContent = correctAnswers;
+      
+      // Calculate prize
+      let prize = "0đ";
+      if (correctAnswers > 0) {
+        // Find the highest safe point below or at current level
+        let safePrize = "0đ";
+        for (let i = correctAnswers - 1; i >= 0; i--) {
+          if (i < prizes.length) {
+            if (prizes[i].safe || i === correctAnswers - 1) {
+              prize = prizes[i].amount;
+              break;
+            }
+            if (prizes[i].safe) {
+              safePrize = prizes[i].amount;
+            }
+          }
+        }
+        if (prize === "0đ") prize = safePrize;
+      }
+      prizeWon.textContent = prize;
+      
+      if (won && correctAnswers === 15) {
+        resultEmoji.textContent = '🏆';
+        resultTitle.textContent = 'TRIỆU PHÚ!';
+        resultMessage.textContent = 'Tuyệt vời! Bạn đã chiến thắng hoàn toàn!';
+        createConfetti();
+      } else if (correctAnswers >= 10) {
+        resultEmoji.textContent = '🌟';
+        resultTitle.textContent = 'XUẤT SẮC!';
+        resultMessage.textContent = 'Bạn có kiến thức rất tốt!';
+        createConfetti();
+      } else if (correctAnswers >= 5) {
+        resultEmoji.textContent = '👏';
+        resultTitle.textContent = 'GIỎI LẮM!';
+        resultMessage.textContent = 'Tiếp tục cố gắng nhé!';
+      } else if (correctAnswers >= 1) {
+        resultEmoji.textContent = '💪';
+        resultTitle.textContent = 'CỐ GẮNG HƠN!';
+        resultMessage.textContent = 'Hãy ôn tập thêm và thử lại!';
+      } else {
+        resultEmoji.textContent = '📚';
+        resultTitle.textContent = 'HÃY HỌC THÊM!';
+        resultMessage.textContent = 'Đừng nản chí, kiến thức đến từ sự kiên trì!';
+      }
+    }
+
+    // Create confetti effect
+    function createConfetti() {
+      const container = document.getElementById('confetti-container');
+      const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#DDA0DD'];
+      
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 2 + 's';
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        container.appendChild(confetti);
+      }
+      
+      setTimeout(() => {
+        container.innerHTML = '';
+      }, 5000);
+    }
+
+    // Lifeline: 50:50
+    function useFiftyFifty() {
+      if (!lifelines.fiftyFifty || !gameActive) return;
+      
+      lifelines.fiftyFifty = false;
+      lifelineBtns.fiftyFifty.disabled = true;
+      
+      const q = questions[currentQuestion];
+      const wrongIndices = [0, 1, 2, 3].filter(i => i !== q.correct);
+      
+      // Remove 2 random wrong answers
+      const toRemove = wrongIndices.sort(() => Math.random() - 0.5).slice(0, 2);
+      toRemove.forEach(index => {
+        answerBtns[index].classList.add('hidden');
+      });
+    }
+
+    // Lifeline: Audience
+    function useAudience() {
+      if (!lifelines.audience || !gameActive) return;
+      
+      lifelines.audience = false;
+      lifelineBtns.audience.disabled = true;
+      
+      const q = questions[currentQuestion];
+      const pollDiv = document.getElementById('audience-poll');
+      
+      // Generate realistic poll results
+      const correctPercent = 40 + Math.floor(Math.random() * 30);
+      let remaining = 100 - correctPercent;
+      const otherPercents = [];
+      
+      for (let i = 0; i < 3; i++) {
+        if (i === 2) {
+          otherPercents.push(remaining);
+        } else {
+          const percent = Math.floor(Math.random() * remaining * 0.6);
+          otherPercents.push(percent);
+          remaining -= percent;
+        }
+      }
+      
+      // Shuffle other percents
+      otherPercents.sort(() => Math.random() - 0.5);
+      
+      const percents = [];
+      let otherIndex = 0;
+      for (let i = 0; i < 4; i++) {
+        if (i === q.correct) {
+          percents.push(correctPercent);
+        } else {
+          percents.push(otherPercents[otherIndex++]);
+        }
+      }
+      
+      // Update poll display
+      ['a', 'b', 'c', 'd'].forEach((letter, index) => {
+        const bar = document.getElementById(`poll-${letter}`);
+        const text = document.getElementById(`poll-${letter}-text`);
+        bar.style.width = percents[index] + '%';
+        text.textContent = percents[index] + '%';
+      });
+      
+      pollDiv.classList.remove('hidden');
+      pollDiv.classList.add('animate-slide-up');
+    }
+
+    // Lifeline: Phone
+    function usePhone() {
+      if (!lifelines.phone || !gameActive) return;
+      
+      lifelines.phone = false;
+      lifelineBtns.phone.disabled = true;
+      
+      const q = questions[currentQuestion];
+      const phoneDiv = document.getElementById('phone-help');
+      
+      document.getElementById('phone-hint').textContent = `"${q.hint}"`;
+      
+      phoneDiv.classList.remove('hidden');
+      phoneDiv.classList.add('animate-slide-up');
+    }
+
+    // Reset game
+    function resetGame() {
+      currentQuestion = 0;
+      correctAnswers = 0;
+      lifelines = { fiftyFifty: true, audience: true, phone: true };
+      gameActive = false;
+      
+      Object.values(lifelineBtns).forEach(btn => btn.disabled = false);
+      
+      resultScreen.classList.add('hidden');
+      gameScreen.classList.remove('hidden');
+      
+      initPrizeLadder();
+      loadQuestion();
+    }
+
+    // Go home
+    function goHome() {
+      currentQuestion = 0;
+      correctAnswers = 0;
+      lifelines = { fiftyFifty: true, audience: true, phone: true };
+      gameActive = false;
+      
+      Object.values(lifelineBtns).forEach(btn => btn.disabled = false);
+      
+      resultScreen.classList.add('hidden');
+      gameScreen.classList.add('hidden');
+      startScreen.classList.remove('hidden');
+    }
+
+    // Event listeners
+    startBtn.addEventListener('click', () => {
+      startScreen.classList.add('hidden');
+      gameScreen.classList.remove('hidden');
+      initPrizeLadder();
+      loadQuestion();
+    });
+
+    answerBtns.forEach((btn, index) => {
+      btn.addEventListener('click', () => handleAnswer(index));
+    });
+
+    nextBtn.addEventListener('click', handleNext);
+    playAgainBtn.addEventListener('click', resetGame);
+    homeBtn.addEventListener('click', goHome);
+    
+    lifelineBtns.fiftyFifty.addEventListener('click', useFiftyFifty);
+    lifelineBtns.audience.addEventListener('click', useAudience);
+    lifelineBtns.phone.addEventListener('click', usePhone);
+
+    // Element SDK Integration
+    async function onConfigChange(config) {
+      const gameTitle = config.game_title || defaultConfig.game_title;
+      const welcomeMessage = config.welcome_message || defaultConfig.welcome_message;
+      
+      document.getElementById('main-title').textContent = gameTitle;
+      document.getElementById('welcome-text').textContent = welcomeMessage;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["game_title", config.game_title || defaultConfig.game_title],
+        ["welcome_message", config.welcome_message || defaultConfig.welcome_message]
+      ]);
+    }
+
+    // Initialize SDK
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9bf5bc8c72a0a880',t:'MTc2ODY1MTY5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
